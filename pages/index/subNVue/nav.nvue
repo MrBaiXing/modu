@@ -1,0 +1,163 @@
+<template>
+	<div>
+		<scroll-view :scroll-top="scrollTop" scroll-y="true" class="scroll-Y" @scrolltoupper="upper"
+			@scrolltolower="lower" @scroll="scroll">
+			<div class="test" style="">
+				<view class="" style="margin-top: 30rpx; border-bottom: 1px solid #eee; padding-bottom: 30rpx;">
+					<text>共 {{sum}} 个设备</text>
+					<text style="font-size: 30rpx;margin-top: 10rpx;">在线 {{zaixian}} 离线 {{lixian}}</text>
+				</view>
+				<u-empty v-if="content.length == 0" mode="data" icon="http://cdn.uviewui.com/uview/empty/data.png">
+				</u-empty>
+				<div class="texta" @click="getSearch(item)" v-for="(item,index) in content" :key="index">
+					<div style="display: flex;">
+						<div class=" title"><text style="">{{item.devno}}</text>
+						</div>
+					</div>
+					<div style=" height: 40rpx; width: 300rpx;">
+						<div style=" width: 20rpx; height: 20rpx; position:relative;top: 10rpx; background-color: #00CE47; border-radius: 10rpx;"
+							v-if="item.zaixiantype == 1">
+						</div>
+						<div style=" width: 20rpx; height: 20rpx; position:relative;top: 10rpx; background-color: #999; border-radius: 10rpx;"
+							v-if="item.zaixiantype == 0">
+						</div>
+						<text style="color: #999; font-size: 30rpx;position:relative;top: -53rpx; margin-left: -45rpx; ">
+							设备名称 :{{item.devname}}
+						</text>
+					</div>
+					<div class="box1" style="background-color: #fcd4d2;" v-if="item.baojing == 1">
+						<text style="font-size: 26rpx; color: #f00;">报警</text>
+					</div>
+					<div class="box1" style="background-color:#d8e2fd;"
+						v-if="item.guzhangtype == 1 && item.baojing == 0">
+						<text style="font-size: 26rpx; color: #3a6df3;">忙碌</text>
+					</div>
+					<div class="box1" style="background-color: #fdedd9;"
+						v-if="item.guzhangtype == 2 && item.baojing == 0">
+						<text style="font-size: 26rpx; color: #f4ad56;">故障</text>
+					</div>
+					<div class="box1" style="background-color: #e1f3d8;"
+						v-if="item.guzhangtype == 0 && item.baojing == 0">
+						<text style="font-size: 26rpx; color: #6cc442;">空闲</text>
+					</div>
+				</div>
+			</div>
+		</scroll-view>
+	</div>
+</template>
+
+<script>
+	export default {
+		data() {
+			return {
+				// 父窗体传递过来的内容
+				content: '',
+				scrollTop: 0,
+				old: {
+					scrollTop: 0
+				},
+				sum: 0,
+				zaixian: 0,
+				lixian: 0
+			}
+		},
+		created() {
+			const vm = this;
+			// 接收信息的页面
+			const subNVue = uni.getSubNVueById('nav');
+			uni.$on('nav', (data) => {
+				console.log(data)
+				vm.content = data.content
+				vm.sum = data.content.length
+				vm.zaixian = 0,
+					vm.lixian = 0
+				data.content.forEach(item => {
+					if (item.zaixiantype == 1) {
+						vm.zaixian += 1
+					} else {
+						vm.lixian += 1
+					}
+				})
+				subNVue.show();
+
+			});
+		},
+
+		beforeDestroy() {
+			// 页面销毁之前 移除监听器
+			uni.$off('nav');
+			// 
+			this.content = '';
+		},
+		methods: {
+			getSearch(inx) {
+				console.log(inx)
+				uni.$emit('nav', {
+					devno: inx.devno,
+					id: inx.ID
+				});
+				// 子窗体隐藏
+				const subNVue = uni.getSubNVueById('nav');
+				// 可自定义 隐藏动画效果，时间
+				subNVue.hide();
+			},
+			upper: function(e) {
+				console.log(e)
+			},
+			lower: function(e) {
+				console.log(e)
+			},
+			scroll: function(e) {
+				// console.log(e)
+				this.old.scrollTop = e.detail.scrollTop
+			},
+			goTop: function(e) {
+				this.scrollTop = this.old.scrollTop
+				this.$nextTick(() => {
+					this.scrollTop = 0
+				});
+				uni.showToast({
+					icon: "none",
+					title: "纵向滚动 scrollTop 值已被修改为 0"
+				})
+			},
+
+
+		}
+	}
+</script>
+
+<style>
+	.box1 {
+		background-color: #fcd4d2;
+		width: 65rpx;
+		text-align: center;
+		padding: 5rpx;
+		height: 40rpx;
+		position: relative;
+		left: 550rpx;
+		top: -80rpx;
+		border-radius: 10rpx;
+	}
+
+	.mag_rig {
+		color: #999;
+	}
+
+	.title {
+		width: 300rpx;
+		height: 50rpx;
+	}
+
+	.test {
+		margin: 0rpx 30rpx 0;
+		background-color: #fff;
+		border-radius: 20rpx;
+	}
+
+	.texta {
+		margin-top: 20rpx;
+		height: 120rpx;
+		border-bottom: #eee 1px solid;
+	}
+</style>
